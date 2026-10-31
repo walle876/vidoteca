@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFBF2">
+<title>Vidoteca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FFFBF2; --card:#FFFFFF; --ink:#1C1A16; --soft:#746C5E; --line:#EAE2D3;
+    --accent:#FF6B4A; --accent-ink:#FFFCF6; --danger:#D1453D; --ok:#2E9E7E;
+    --c1:#FF6B4A; --c2:#FFC24B; --c3:#48B7A4; --c4:#6C7FF2; --c5:#E85D9E;
+    --sombra:0 12px 30px rgba(28,26,22,.09); --radio:18px;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-tema="claro"]){
+      --paper:#17150F; --card:#211E17; --ink:#F5F1E6; --soft:#B9AF9D; --line:#332F26;
+      --accent:#FF8064; --accent-ink:#17150F; --danger:#FF8A75; --ok:#4ECBA6;
+      --sombra:0 12px 30px rgba(0,0,0,.4); color-scheme:dark;
+    }
+  }
+  :root[data-tema="oscuro"]{
+    --paper:#17150F; --card:#211E17; --ink:#F5F1E6; --soft:#B9AF9D; --line:#332F26;
+    --accent:#FF8064; --accent-ink:#17150F; --danger:#FF8A75; --ok:#4ECBA6;
+    --sombra:0 12px 30px rgba(0,0,0,.4); color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));
+    -webkit-tap-highlight-color:transparent;
+  }
+  h1,h2,h3,.marca{font-family:"Space Grotesk",system-ui,sans-serif;letter-spacing:-.02em}
+  button{font:inherit;color:inherit;cursor:pointer}
+  .oculto{display:none !important}
+
+  /* cabecera */
+  header{
+    position:sticky; top:0; z-index:30; background:color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter:saturate(1.4) blur(12px); border-bottom:1px solid var(--line);
+  }
+  .barra-sup{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
+  .marca{display:flex;align-items:center;gap:9px;font-size:1.22rem;font-weight:700}
+  .marca svg{width:26px;height:26px;color:var(--accent)}
+  .buscador{
+    flex:1; min-width:0; display:flex; align-items:center; gap:8px;
+    background:var(--card); border:1px solid var(--line); border-radius:999px; padding:0 12px; height:42px;
+  }
+  .buscador input{border:0;background:transparent;outline:0;font:inherit;color:inherit;width:100%;min-width:0}
+  .buscador svg{width:17px;height:17px;color:var(--soft);flex:0 0 auto}
+  .usuario-chip{
+    display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:0 6px 0 12px;height:42px;font-size:.85rem;white-space:nowrap
+  }
+  .usuario-chip b{font-weight:650;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+  .insignia{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:3px 7px;border-radius:7px;background:var(--accent);color:var(--accent-ink)}
+  .icono{
+    width:34px;height:34px;display:grid;place-items:center;border:0;background:transparent;
+    border-radius:10px;color:var(--soft)
+  }
+  .icono:hover{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)}
+  .icono svg{width:18px;height:18px}
+
+  /* contenido */
+  main{max-width:1100px;margin:0 auto;padding:20px 16px 30px}
+  .titulo-fila{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 0 16px}
+  .titulo-fila h2{margin:0;font-size:1.15rem}
+  .contador{color:var(--soft);font-size:.83rem}
+
+  .rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+  .tarjeta{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radio);overflow:hidden;
+    display:flex;flex-direction:column;transition:transform .16s,box-shadow .16s; position:relative
+  }
+  .tarjeta:hover{transform:translateY(-2px);box-shadow:var(--sombra)}
+  .mini{aspect-ratio:16/10;background:color-mix(in srgb,var(--ink) 8%,transparent);position:relative;display:grid;place-items:center;overflow:hidden}
+  .mini img{width:100%;height:100%;object-fit:cover;display:block}
+  .mini .play{
+    position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.35));
+    opacity:0;transition:opacity .16s
+  }
+  .tarjeta:hover .mini .play{opacity:1}
+  .play svg{width:44px;height:44px;color:#fff;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+  .dur{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.72);color:#fff;font-size:.72rem;padding:2px 6px;border-radius:6px;font-variant-numeric:tabular-nums}
+  .cuerpo{padding:11px 13px 13px;display:flex;flex-direction:column;gap:5px;flex:1}
+  .cuerpo h3{margin:0;font-size:.95rem;font-weight:650;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .cuerpo p{margin:0;color:var(--soft);font-size:.8rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .pie{display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:8px;color:var(--soft);font-size:.74rem}
+  .punto-autor{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+  .etiqueta-estado{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 6px;border-radius:5px}
+  .estado-bloqueado{background:color-mix(in srgb,var(--danger) 18%,transparent);color:var(--danger)}
+
+  .vacio{
+    text-align:center;padding:56px 20px;border:1.5px dashed var(--line);border-radius:var(--radio);
+    background:color-mix(in srgb,var(--card) 60%,transparent)
+  }
+  .vacio svg{width:52px;height:52px;color:var(--soft);opacity:.7}
+  .vacio h3{margin:12px 0 6px;font-size:1.05rem}
+  .vacio p{margin:0 0 16px;color:var(--soft);font-size:.88rem}
+
+  /* botones */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 18px;
+    border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:.9rem;
+    transition:background .15s,border-color .15s,transform .1s
+  }
+  .btn:active{transform:scale(.98)}
+  .btn svg{width:17px;height:17px}
+  .btn-principal{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn-principal:disabled{opacity:.5;cursor:not-allowed}
+  .btn-peligro{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,transparent)}
+  .btn-peligro:hover{background:color-mix(in srgb,var(--danger) 10%,transparent)}
+  .btn-mini{height:32px;padding:0 11px;font-size:.78rem;border-radius:9px;gap:5px}
+  .btn-mini svg{width:14px;height:14px}
+
+  /* barra inferior */
+  .barra{
+    position:fixed;left:0;right:0;bottom:0;z-index:35;
+    background:color-mix(in srgb,var(--paper) 92%,transparent);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line); padding-bottom:env(safe-area-inset-bottom,0px);
+    display:grid;grid-template-columns:repeat(4,1fr)
+  }
+  .barra button{
+    border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:9px 4px 8px;color:var(--soft);font-size:.68rem;font-weight:600
+  }
+  .barra button svg{width:21px;height:21px}
+  .barra button[aria-selected="true"]{color:var(--accent)}
+  .barra .centro svg{background:var(--accent);color:var(--accent-ink);border-radius:13px;padding:7px;width:38px;height:38px;margin-top:-14px;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 45%,transparent)}
+
+  /* velos */
+  .velo{
+    position:fixed;inset:0;z-index:60;background:rgba(20,18,14,.55);backdrop-filter:blur(6px);
+    display:grid;place-items:center;padding:16px;overflow:auto
+  }
+  .caja{
+    width:100%;max-width:430px;background:var(--card);border:1px solid var(--line);
+    border-radius:22px;padding:24px;box-shadow:0 24px 60px rgba(0,0,0,.3)
+  }
+  .caja.ancha{max-width:940px}
+  .caja h2{margin:0 0 4px;font-size:1.28rem}
+  .caja .sub{margin:0 0 20px;color:var(--soft);font-size:.86rem;line-height:1.4}
+  .campo{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .campo label{font-size:.78rem;font-weight:650;color:var(--soft);text-transform:uppercase;letter-spacing:.06em}
+  .campo input,.campo textarea,.campo select{
+    background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:11px 13px;
+    font:inherit;color:inherit;outline:0;width:100%
+  }
+  .campo input:focus,.campo textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+  .campo textarea{resize:vertical;min-height:70px}
+  .fila-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .aviso{padding:10px 13px;border-radius:11px;font-size:.83rem;line-height:1.4;margin-bottom:14px;border:1px solid transparent}
+  .aviso-error{background:color-mix(in srgb,var(--danger) 12%,transparent);border-color:color-mix(in srgb,var(--danger) 30%,transparent);color:var(--danger)}
+  .aviso-bien{background:color-mix(in srgb,var(--ok) 12%,transparent);border-color:color-mix(in srgb,var(--ok) 30%,transparent);color:var(--ok)}
+  .aviso-info{background:color-mix(in srgb,var(--ink) 6%,transparent);border-color:var(--line);color:var(--soft)}
+  .acciones{display:flex;gap:10px;margin-top:18px}
+  .acciones .btn{flex:1}
+
+  .zona-soltar{
+    border:1.6px dashed var(--line);border-radius:16px;padding:28px 18px;text-align:center;
+    background:var(--paper);transition:border-color .15s,background .15s;margin-bottom:16px
+  }
+  .zona-soltar.drag{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 7%,transparent)}
+  .zona-soltar svg{width:38px;height:38px;color:var(--soft)}
+  .zona-soltar p{margin:8px 0 0;font-size:.86rem;color:var(--soft)}
+  .barra-progreso{height:7px;border-radius:99px;background:color-mix(in srgb,var(--ink) 10%,transparent);overflow:hidden;margin:12px 0 6px}
+  .barra-progreso i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .2s}
+  .detalle-progreso{display:flex;justify-content:space-between;font-size:.76rem;color:var(--soft);font-variant-numeric:tabular-nums}
+
+  /* reproductor */
+  .velo-player{background:#000;padding:0;display:block}
+  .player-envoltorio{min-height:100%;display:flex;flex-direction:column;justify-content:center;max-width:1000px;margin:0 auto;padding:16px}
+  .player-cabecera{display:flex;align-items:center;gap:10px;color:#fff;margin-bottom:10px}
+  .player-cabecera h3{margin:0;font-size:1rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .player-cabecera .icono{color:#fff;background:rgba(255,255,255,.14)}
+  .player-video{width:100%;max-height:70vh;background:#000;border-radius:12px;outline:0}
+  .player-info{color:#cfc9bf;font-size:.85rem;margin-top:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .player-info .btn{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff;height:38px}
+
+  /* admin */
+  .pestanas{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow:auto}
+  .pestanas button{
+    border:0;background:transparent;padding:11px 14px;font-size:.88rem;font-weight:600;color:var(--soft);
+    border-bottom:2px solid transparent;white-space:nowrap
+  }
+  .pestanas button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+  .tabla-envoltura{overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+  table{width:100%;border-collapse:collapse;font-size:.82rem;min-width:560px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);font-weight:700;background:color-mix(in srgb,var(--ink) 3%,transparent);position:sticky;top:0}
+  tr:last-child td{border-bottom:0}
+  .ip{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem}
+  .vacio-tabla{padding:30px;text-align:center;color:var(--soft);font-size:.86rem}
+
+  .ficha{display:flex;gap:10px;align-items:center;padding:11px 12px;border-bottom:1px solid var(--line)}
+  .ficha:last-child{border-bottom:0}
+  .ficha img{width:66px;height:42px;object-fit:cover;border-radius:8px;background:color-mix(in srgb,var(--ink) 8%,transparent);flex:0 0 auto}
+  .ficha .datos{flex:1;min-width:0}
+  .ficha .datos b{display:block;font-size:.85rem;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ficha .datos span{font-size:.75rem;color:var(--soft)}
+  .ficha .acciones-ficha{display:flex;gap:6px;flex:0 0 auto}
+
+  /* avisos flotantes */
+  .avisos{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:80;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px);pointer-events:none}
+  .toast{
+    background:var(--ink);color:var(--paper);padding:11px 15px;border-radius:12px;font-size:.85rem;
+    box-shadow:0 10px 30px rgba(0,0,0,.28);animation:entra .18s ease-out
+  }
+  .toast.bien{background:var(--ok);color:#fff}
+  .toast.mal{background:var(--danger);color:#fff}
+  @keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .cargando{display:inline-block;width:15px;height:15px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira .7s linear infinite}
+  @keyframes gira{to{transform:rotate(360deg)}}
+
+  @media (max-width:640px){
+    .barra-sup{padding:10px 12px;gap:8px}
+    .marca span{display:none}
+    .usuario-chip b{max-width:70px}
+    .usuario-chip .insignia{display:none}
+    .rejilla{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+    .cuerpo{padding:9px 10px 11px}
+    .cuerpo h3{font-size:.86rem}
+    .fila-2{grid-template-columns:1fr}
+    .caja{padding:20px;border-radius:18px}
+  }
+  @media (min-width:900px){
+    header .barra-sup{grid-template-columns:auto 1fr auto}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="barra-sup">
+    <div class="marca">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg>
+      <span>vidoteca</span>
+    </div>
+    <div class="buscador">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="buscador" type="search" placeholder="Buscar en la vidoteca" aria-label="Buscar vídeos">
+    </div>
+    <div class="usuario-chip">
+      <b id="chipNombre">—</b>
+      <span class="insignia oculto" id="chipRol">admin</span>
+      <button class="icono" id="btnSalir" title="Cerrar sesión" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- biblioteca -->
+  <section id="vistaBiblioteca">
+    <div class="titulo-fila">
+      <h2>Todos los vídeos</h2>
+      <span class="contador" id="contadorVideos"></span>
+    </div>
+    <div id="rejilla" class="rejilla"></div>
+    <div id="vacioBiblioteca" class="vacio oculto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg>
+      <h3 id="vacioTitulo">Tu vidoteca está vacía</h3>
+      <p id="vacioTexto">Sube el primer vídeo. No hay límite de duración ni de cantidad.</p>
+      <button class="btn btn-principal" id="btnSubirVacio">Subir un vídeo</button>
+    </div>
+  </section>
+
+  <!-- admin -->
+  <section id="vistaAdmin" class="oculto">
+    <div class="titulo-fila">
+      <h2>Administración</h2>
+      <span class="contador">Solo visible para administradores</span>
+    </div>
+    <div class="pestanas" role="tablist">
+      <button role="tab" data-pestana="accesos" aria-selected="true">Accesos</button>
+      <button role="tab" data-pestana="videos" aria-selected="false">Vídeos</button>
+      <button role="tab" data-pestana="usuarios" aria-selected="false">Usuarios</button>
+    </div>
+    <div id="panelAccesos">
+      <div class="campo" style="max-width:260px">
+        <label for="filtroAccesos">Mostrar</label>
+        <select id="filtroAccesos">
+          <option value="acceso">Accesos</option>
+          <option value="todos">Todo</option>
+          <option value="subida">Subidas</option>
+          <option value="moderacion">Moderación</option>
+        </select>
+      </div>
+      <div class="tabla-envoltura"><table>
+        <thead><tr><th>Cuándo</th><th>Usuario</th><th>Acción</th><th>Resultado</th><th>IP</th><th>Lugar</th><th>Dispositivo</th></tr></thead>
+        <tbody id="cuerpoAccesos"></tbody>
+      </table></div>
+    </div>
+    <div id="panelVideos" class="oculto">
+      <div id="listaVideosAdmin"></div>
+    </div>
+    <div id="panelUsuarios" class="oculto">
+      <div class="tabla-envoltura"><table>
+        <thead><tr><th>Usuario</th><th>Rol</th><th>Estado</th><th>Alta</th><th>Último acceso</th><th></th></tr></thead>
+        <tbody id="cuerpoUsuarios"></tbody>
+      </table></div>
+    </div>
+  </section>
+</main>
+
+<nav class="barra" role="tablist">
+  <button data-vista="biblioteca" aria-selected="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>
+    Biblioteca
+  </button>
+  <button class="centro" data-vista="subir" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Subir
+  </button>
+  <button data-vista="admin" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+    Admin
+  </button>
+  <button data-vista="cuenta" aria-selected="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+    Cuenta
+  </button>
+</nav>
+
+<!-- ===================== LOGIN ===================== -->
+<div class="velo" id="veloLogin">
+  <div class="caja">
+    <div class="marca" style="margin-bottom:14px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg>
+      <span>vidoteca</span>
+    </div>
+    <div id="cajaPrimerUso" class="oculto">
+      <h2>Crea el administrador</h2>
+      <p class="sub">Es la primera vez que abres la vidoteca. Esta cuenta podrá ver los accesos, las IP y moderar los vídeos.</p>
+      <div class="campo"><label for="adminUsuario">Usuario</label><input id="adminUsuario" autocomplete="username" placeholder="admin" maxlength="24"></div>
+      <div class="campo"><label for="adminClave">Contraseña (mínimo 10 caracteres)</label><input id="adminClave" type="password" autocomplete="new-password" placeholder="••••••••••"></div>
+      <div class="campo"><label for="adminClave2">Repite la contraseña</label><input id="adminClave2" type="password" autocomplete="new-password" placeholder="••••••••••"></div>
+      <div id="avisoPrimerUso"></div>
+      <button class="btn btn-principal" id="btnCrearAdmin" style="width:100%">Crear administrador</button>
+    </div>
+
+    <div id="cajaEntrar">
+      <h2>Entrar</h2>
+      <p class="sub">Cada persona usa su propia cuenta. Los accesos quedan registrados con IP y dispositivo.</p>
+      <div class="campo"><label for="loginUsuario">Usuario</label><input id="loginUsuario" autocomplete="username" placeholder="tu usuario"></div>
+      <div class="campo"><label for="loginClave">Contraseña</label><input id="loginClave" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <div id="avisoLogin"></div>
+      <button class="btn btn-principal" id="btnEntrar" style="width:100%">Entrar</button>
+      <p class="sub" style="margin:16px 0 0;text-align:center">
+        ¿No tienes cuenta? <a href="#" id="enlaceRegistro" style="color:var(--accent);font-weight:650">Crear una</a>
+      </p>
+    </div>
+
+    <div id="cajaRegistro" class="oculto">
+      <h2>Crear cuenta</h2>
+      <p class="sub">Tu cuenta solo puede subir y borrar sus propios vídeos.</p>
+      <div class="campo"><label for="regUsuario">Usuario</label><input id="regUsuario" autocomplete="username" maxlength="24"></div>
+      <div class="campo"><label for="regClave">Contraseña (mínimo 8 caracteres)</label><input id="regClave" type="password" autocomplete="new-password"></div>
+      <div id="avisoRegistro"></div>
+      <button class="btn btn-principal" id="btnRegistrar" style="width:100%">Crear cuenta</button>
+      <p class="sub" style="margin:16px 0 0;text-align:center"><a href="#" id="enlaceEntrar" style="color:var(--accent);font-weight:650">Ya tengo cuenta</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SUBIR ===================== -->
+<div class="velo oculto" id="veloSubir">
+  <div class="caja">
+    <h2>Subir vídeo</h2>
+    <p class="sub">Sin límite de duración ni de cantidad. Se guarda en este dispositivo por bloques.</p>
+    <label class="zona-soltar" id="zonaSoltar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      <p id="textoSoltar">Arrastra un vídeo o toca para elegirlo</p>
+      <input id="ficheroVideo" type="file" accept="video/*" hidden>
+    </label>
+    <div class="campo"><label for="tituloVideo">Título</label><input id="tituloVideo" maxlength="120" placeholder="Título del vídeo"></div>
+    <div class="campo"><label for="descVideo">Descripción</label><textarea id="descVideo" rows="2" placeholder="Opcional"></textarea></div>
+    <div id="zonaProgreso" class="oculto">
+      <div class="barra-progreso"><i id="barraProgreso"></i></div>
+      <div class="detalle-progreso"><span id="detalleProgreso">0%</span><span id="ritmoProgreso"></span></div>
+    </div>
+    <div id="avisoSubir"></div>
+    <div class="acciones">
+      <button class="btn" id="btnCancelarSubida" type="button">Cerrar</button>
+      <button class="btn btn-principal" id="btnSubirVideo" type="button" disabled>Subir vídeo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== REPRODUCTOR ===================== -->
+<div class="velo oculto" id="veloPlayer">
+  <div class="player-envoltorio">
+    <div class="player-cabecera">
+      <h3 id="playerTitulo">—</h3>
+      <button class="icono" id="btnCerrarPlayer" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <video class="player-video" id="playerVideo" controls playsinline preload="metadata"></video>
+    <div class="player-info">
+      <span id="playerMeta"></span>
+      <span style="flex:1"></span>
+      <button class="btn" id="btnBorrarPropio" style="display:none">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CUENTA ===================== -->
+<div class="velo oculto" id="veloCuenta">
+  <div class="caja">
+    <h2>Tu cuenta</h2>
+    <p class="sub" id="cuentaResumen">—</p>
+    <div class="campo"><label for="claveActual">Contraseña actual</label><input id="claveActual" type="password" autocomplete="current-password"></div>
+    <div class="campo"><label for="claveNueva">Nueva contraseña</label><input id="claveNueva" type="password" autocomplete="new-password"></div>
+    <div id="avisoCuenta"></div>
+    <div class="acciones">
+      <button class="btn" id="btnCerrarCuenta" type="button">Cerrar</button>
+      <button class="btn btn-principal" id="btnCambiarClave" type="button">Cambiar contraseña</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MOTIVO DE BLOQUEO ===================== -->
+<div class="velo oculto" id="veloMotivo">
+  <div class="caja">
+    <h2>Bloquear vídeo</h2>
+    <p class="sub">El vídeo dejará de ser visible para todos menos para su autor y la administración.</p>
+    <div class="campo"><label for="textoMotivo">Motivo</label><input id="textoMotivo" maxlength="120" placeholder="Contenido prohibido, spam, derechos de autor..."></div>
+    <div id="avisoMotivo"></div>
+    <div class="acciones">
+      <button class="btn" id="btnCancelarMotivo" type="button">Cancelar</button>
+      <button class="btn btn-peligro" id="btnConfirmarMotivo" type="button">Bloquear</button>
+    </div>
+  </div>
+</div>
+
+<div class="avisos" id="avisos" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     Utilidades
+     ============================================================ */
+  var $ = function (id) { return document.getElementById(id); };
+
+  function escapar(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function bytes(n) {
+    if (!n) return "0 B";
+    var u = ["B", "KB", "MB", "GB", "TB"], i = 0;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    return (n < 10 && i > 0 ? n.toFixed(1) : Math.round(n)) + " " + u[i];
+  }
+  function fecha(ts) {
+    var d = new Date(ts);
+    return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" }) + " · " +
+      d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+  }
+  function fechaLarga(ts) {
+    return new Date(ts).toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+  }
+  function duracion(seg) {
+    if (!isFinite(seg) || seg <= 0) return "—";
+    seg = Math.round(seg);
+    var h = Math.floor(seg / 3600), m = Math.floor((seg % 3600) / 60), s = seg % 60;
+    var mm = String(m).padStart(2, "0"), ss = String(s).padStart(2, "0");
+    return h > 0 ? h + ":" + mm + ":" + ss : m + ":" + ss;
+  }
+  function dispositivo(ua) {
+    ua = ua || "";
+    var so = "Escritorio";
+    if (/Android/i.test(ua)) so = "Android";
+    else if (/iPhone|iPad|iPod/i.test(ua)) so = "iOS";
+    else if (/Windows/i.test(ua)) so = "Windows";
+    else if (/Mac OS X/i.test(ua)) so = "macOS";
+    else if (/Linux/i.test(ua)) so = "Linux";
+    var nav = "Navegador";
+    if (/Edg\//i.test(ua)) nav = "Edge";
+    else if (/OPR\/|Opera/i.test(ua)) nav = "Opera";
+    else if (/Chrome\//i.test(ua)) nav = "Chrome";
+    else if (/Firefox\//i.test(ua)) nav = "Firefox";
+    else if (/Safari\//i.test(ua)) nav = "Safari";
+    return so + " · " + nav;
+  }
+  function toast(texto, tipo) {
+    var caja = document.createElement("div");
+    caja.className = "toast" + (tipo ? " " + tipo : "");
+    caja.textContent = texto;
+    $("avisos").appendChild(caja);
+    setTimeout(function () {
+      caja.style.opacity = "0";
+      caja.style.transform = "translateY(6px)";
+      caja.style.transition = "opacity .25s,transform .25s";
+      setTimeout(function () { caja.remove(); }, 300);
+    }, 3400);
+  }
+  function avisoEn(id, texto, tipo) {
+    var caja = $(id);
+    if (!caja) return;
+    if (!texto) { caja.innerHTML = ""; return; }
+    caja.innerHTML = '<div class="aviso aviso-' + (tipo || "info") + '">' + escapar(texto) + "</div>";
+  }
+  function nuevoId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "v" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+  function aBase64(buffer) {
+    var bytes = new Uint8Array(buffer), bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+
+  /* ============================================================
+     Criptografía: PBKDF2-SHA256 y respaldo en JS puro
+     ============================================================ */
+  var ITERACIONES = 150000;
+  var puedeCifrar = !!(window.crypto && window.crypto.subtle && crypto.subtle.importKey);
+
+  // SHA-256 en JS, solo se usa si el navegador no expone crypto.subtle (por ejemplo file://)
+  function sha256Hex(txt) {
+    function rr(x, n) { return (x >>> n) | (x << (32 - n)); }
+    var K = [1116352408, 1899447441, 3049323471, 3921009573, 961987163, 1508970993, 2453635748, 2870763221, 3624381080, 310598401, 607225278, 1426881987, 1925078388, 2162078206, 2614888103, 3248222580, 3835390401, 4022224774, 264347078, 604807628, 770255983, 1249150122, 1555081692, 1996064986, 2554220882, 2821834349, 2952996808, 3210313671, 3336571891, 3584528711, 113926993, 338241895, 666307205, 773529912, 1294757372, 1396182291, 1695183700, 1986661051, 2177026350, 2456956037, 2730485921, 2820302411, 3259730800, 3345764771, 3516065817, 3600352804, 4094571909, 275423344, 430227734, 506948616, 659060556, 883997877, 958139571, 1322822218, 1537002063, 1747873779, 1955562222, 2024104815, 2227730452, 2361852424, 2428436474, 2756734187, 3204031479, 3329325298];
+    var H = [1779033703, 3144134277, 1013904242, 2773480762, 1359893119, 2600822924, 528734635, 1541459225];
+    var bytes = [], i;
+    for (i = 0; i < txt.length; i++) {
+      var c = txt.charCodeAt(i);
+      if (c < 128) bytes.push(c);
+      else if (c < 2048) { bytes.push(192 | (c >> 6), 128 | (c & 63)); }
+      else { bytes.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63)); }
+    }
+    var bits = bytes.length * 8;
+    bytes.push(0x80);
+    while (bytes.length % 64 !== 56) bytes.push(0);
+    for (i = 7; i >= 0; i--) bytes.push((bits / Math.pow(2, i * 8)) & 255);
+    var w = new Array(64);
+    for (var p = 0; p < bytes.length; p += 64) {
+      for (i = 0; i < 16; i++) w[i] = (bytes[p + i * 4] << 24) | (bytes[p + i * 4 + 1] << 16) | (bytes[p + i * 4 + 2] << 8) | bytes[p + i * 4 + 3];
+      for (i = 16; i < 64; i++) {
+        var s0 = rr(w[i - 15], 7) ^ rr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+        var s1 = rr(w[i - 2], 17) ^ rr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+      }
+      var a = H[0], b = H[1], c2 = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+      for (i = 0; i < 64; i++) {
+        var S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25);
+        var ch = (e & f) ^ (~e & g);
+        var t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+        var S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22);
+        var mj = (a & b) ^ (a & c2) ^ (b & c2);
+        var t2 = (S0 + mj) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c2; c2 = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c2) | 0; H[3] = (H[3] + d) | 0;
+      H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+    }
+    return H.map(function (x) { return (x >>> 0).toString(16).padStart(8, "0"); }).join("");
+  }
+
+  function hashRespaldo(clave, saltB64, vueltas) {
+    var acumulado = saltB64 + ":" + clave;
+    for (var i = 0; i < vueltas; i++) acumulado = sha256Hex(acumulado + ":" + saltB64 + ":" + i);
+    return acumulado;
+  }
+
+  function nuevoSalt() {
+    var arr = new Uint8Array(16);
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(arr);
+    else for (var i = 0; i < 16; i++) arr[i] = Math.floor(Math.random() * 256);
+    return aBase64(arr);
+  }
+
+  function hashClave(clave, saltB64) {
+    if (!puedeCifrar) return Promise.resolve("rj:" + hashRespaldo(clave, saltB64, 20000));
+    var codificador = new TextEncoder();
+    var salt = Uint8Array.from(atob(saltB64), function (c) { return c.charCodeAt(0); });
+    return crypto.subtle.importKey("raw", codificador.encode(clave), "PBKDF2", false, ["deriveBits"])
+      .then(function (material) {
+        return crypto.subtle.deriveBits({ name: "PBKDF2", salt: salt, iterations: ITERACIONES, hash: "SHA-256" }, material, 256);
+      })
+      .then(function (bits) { return "pbkdf2:" + aBase64(bits); })
+      .catch(function () { return "rj:" + hashRespaldo(clave, saltB64, 20000); });
+  }
+
+  function hashesIguales(a, b) {
+    a = String(a || ""); b = String(b || "");
+    if (a.length !== b.length) return false;
+    var dif = 0;
+    for (var i = 0; i < a.length; i++) dif |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    return dif === 0;
+  }
+
+  /* ============================================================
+     IndexedDB
+     ============================================================ */
+  var db = null;
+  var NOMBRE_DB = "vidoteca";
+  var VERSION_DB = 1;
+
+  function abrirDB() {
+    return new Promise(function (ok, mal) {
+      var peticion = indexedDB.open(NOMBRE_DB, VERSION_DB);
+      peticion.onupgradeneeded = function (e) {
+        var d = e.target.result;
+        if (!d.objectStoreNames.contains("usuarios")) d.createObjectStore("usuarios", { keyPath: "id" });
+        if (!d.objectStoreNames.contains("videos")) {
+          var v = d.createObjectStore("videos", { keyPath: "id" });
+          v.createIndex("porFecha", "creado");
+          v.createIndex("porAutor", "autorId");
+        }
+        if (!d.objectStoreNames.contains("bloques")) {
+          var b = d.createObjectStore("bloques", { keyPath: ["videoId", "i"] });
+          b.createIndex("porVideo", "videoId");
+        }
+        if (!d.objectStoreNames.contains("auditoria")) {
+          var a = d.createObjectStore("auditoria", { keyPath: "id", autoIncrement: true });
+          a.createIndex("porHora", "hora");
+        }
+        if (!d.objectStoreNames.contains("ajustes")) d.createObjectStore("ajustes", { keyPath: "clave" });
+      };
+      peticion.onsuccess = function () { db = peticion.result; ok(db); };
+      peticion.onerror = function () { mal(peticion.error); };
+    });
+  }
+
+  function pedir(almacen, modo, accion) {
+    return new Promise(function (ok, mal) {
+      var t = db.transaction(almacen, modo);
+      var s = t.objectStore(almacen);
+      var r = accion(s);
+      var salida;
+      if (r) {
+        r.onsuccess = function () { salida = r.result; };
+        r.onerror = function () { mal(r.error); };
+      }
+      t.oncomplete = function () { ok(salida); };
+      t.onerror = function () { mal(t.error); };
+      t.onabort = function () { mal(t.error); };
+    });
+  }
+
+  function guardar(almacen, valor) { return pedir(almacen, "readwrite", function (s) { return s.put(valor); }); }
+  function obtener(almacen, clave) { return pedir(almacen, "readonly", function (s) { return s.get(clave); }); }
+  function borrar(almacen, clave) { return pedir(almacen, "readwrite", function (s) { return s.delete(clave); }); }
+  function todos(almacen) { return pedir(almacen, "readonly", function (s) { return s.getAll(); }); }
+  function contar(almacen) { return pedir(almacen, "readonly", function (s) { return s.count(); }); }
+
+  /* ============================================================
+     Sesión
+     ============================================================ */
+  var CLAVE_SESION = "vidoteca.sesion";
+  var HORAS_SESION = 8;
+  var sesion = null;
+
+  function leerSesion() {
+    try {
+      var crudo = sessionStorage.getItem(CLAVE_SESION);
+      if (!crudo) return null;
+      var datos = JSON.parse(crudo);
+      if (!datos || !datos.id || !datos.expira || datos.expira < Date.now()) return null;
+      return datos;
+    } catch (e) { return null; }
+  }
+  function escribirSesion(usuario) {
+    sesion = { id: usuario.id, usuario: usuario.usuario, rol: usuario.rol, expira: Date.now() + HORAS_SESION * 3600e3 };
+    try { sessionStorage.setItem(CLAVE_SESION, JSON.stringify(sesion)); } catch (e) {}
+  }
+  function cerrarSesionLocal() {
+    sesion = null;
+    try { sessionStorage.removeItem(CLAVE_SESION); } catch (e) {}
+  }
+
+  /* ============================================================
+     IP y auditoría
+     ============================================================ */
+  var cacheIP = null;
+
+  function conTiempo(url, ms) {
+    var control = new AbortController();
+    var limite = setTimeout(function () { control.abort(); }, ms || 4000);
+    return fetch(url, { signal: control.signal, cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (d) { clearTimeout(limite); return d; });
+  }
+
+  function datosIP() {
+    if (cacheIP) return Promise.resolve(cacheIP);
+    return conTiempo("https://api.ipify.org?format=json", 4000).then(function (a) {
+      var ip = a && a.ip ? a.ip : "no disponible";
+      return conTiempo("https://ipapi.co/json/", 4500).then(function (b) {
+        cacheIP = {
+          ip: ip,
+          pais: b && b.country_name ? b.country_name : "",
+          ciudad: b && b.city ? b.city : "",
+          region: b && b.region ? b.region : ""
+        };
+        if (b && b.ip && ip === "no disponible") cacheIP.ip = b.ip;
+        return cacheIP;
+      });
+    });
+  }
+
+  function registrar(tipo, usuario, detalle, resultado, ubicacion) {
+    var entrada = {
+      tipo: tipo,
+      usuario: usuario || "—",
+      usuarioId: sesion ? sesion.id : null,
+      detalle: detalle || "",
+      resultado: resultado || "ok",
+      hora: Date.now(),
+      agente: navigator.userAgent,
+      dispositivo: dispositivo(navigator.userAgent),
+      ip: (ubicacion && ubicacion.ip) || (cacheIP && cacheIP.ip) || "no disponible",
+      pais: (ubicacion && ubicacion.pais) || (cacheIP && cacheIP.pais) || "",
+      ciudad: (ubicacion && ubicacion.ciudad) || (cacheIP && cacheIP.ciudad) || ""
+    };
+    return guardar("auditoria", entrada).catch(function () {});
+  }
+
+  /* ============================================================
+     Usuarios
+     ============================================================ */
+  var MAX_INTENTOS = 5;
+  var BLOQUEO_MS = 15 * 60e3;
+
+  function buscarPorUsuario(nombre) {
+    return todos("usuarios").then(function (lista) {
+      var buscado = String(nombre || "").trim().toLowerCase();
+      for (var i = 0; i < lista.length; i++) {
+        if (String(lista[i].usuario).toLowerCase() === buscado) return lista[i];
+      }
+      return null;
+    });
+  }
+
+  function crearUsuario(nombre, clave, rol) {
+    var limpio = String(nombre || "").trim();
+    if (!/^[a-zA-Z0-9._-]{3,24}$/.test(limpio)) {
+      return Promise.reject(new Error("El usuario debe tener entre 3 y 24 caracteres: letras, números, punto, guion o guion bajo."));
+    }
+    return buscarPorUsuario(limpio).then(function (existe) {
+      if (existe) throw new Error("Ese usuario ya existe.");
+      var salt = nuevoSalt();
+      return hashClave(clave, salt).then(function (hash) {
+        var usuario = {
+          id: nuevoId(),
+          usuario: limpio,
+          rol: rol || "usuario",
+          salt: salt,
+          hash: hash,
+          creado: Date.now(),
+          activo: true,
+          intentos: 0,
+          bloqueadoHasta: 0,
+          ultimoAcceso: 0
+        };
+        return guardar("usuarios", usuario).then(function () { return usuario; });
+      });
+    });
+  }
+
+  function autenticar(nombre, clave) {
+    return buscarPorUsuario(nombre).then(function (usuario) {
+      if (!usuario) {
+        return registrar("acceso", String(nombre || "—"), "usuario inexistente", "fallo")
+          .then(function () { datosIP(); })
+          .then(function () {
+            if (cacheIP) return registrar("acceso", String(nombre || "—"), "usuario inexistente", "fallo");
+          })
+          .then(function () { throw new Error("Usuario o contraseña incorrectos."); });
+      }
+      if (!usuario.activo) throw new Error("Esta cuenta está suspendida. Habla con la administración.");
+      if (usuario.bloqueadoHasta && usuario.bloqueadoHasta > Date.now()) {
+        var minutos = Math.ceil((usuario.bloqueadoHasta - Date.now()) / 60000);
+        throw new Error("Demasiados intentos. Espera " + minutos + " minuto" + (minutos === 1 ? "" : "s") + ".");
+      }
+      return hashClave(clave, usuario.salt).then(function (hash) {
+        if (!hashesIguales(hash, usuario.hash)) {
+          usuario.intentos = (usuario.intentos || 0) + 1;
+          var alcanzo = usuario.intentos >= MAX_INTENTOS;
+          if (alcanzo) {
+            usuario.bloqueadoHasta = Date.now() + BLOQUEO_MS;
+            usuario.intentos = 0;
+          }
+          return guardar("usuarios", usuario).then(function () {
+            return registrar("acceso", usuario.usuario, alcanzo ? "cuenta bloqueada por intentos" : "contraseña incorrecta", "fallo");
+          }).then(function () {
+            if (alcanzo) throw new Error("Demasiados intentos fallidos. La cuenta queda bloqueada 15 minutos.");
+            throw new Error("Usuario o contraseña incorrectos.");
+          });
+        }
+        usuario.intentos = 0;
+        usuario.bloqueadoHasta = 0;
+        usuario.ultimoAcceso = Date.now();
+        return guardar("usuarios", usuario).then(function () {
+          return datosIP();
+        }).then(function (ubicacion) {
+          return registrar("acceso", usuario.usuario, "inicio de sesión", "ok", ubicacion);
+        }).then(function () { return usuario; });
+      });
+    });
+  }
+
+  function usuarioDeSesion() {
+    if (!sesion) return Promise.resolve(null);
+    return obtener("usuarios", sesion.id).then(function (u) {
+      if (!u || !u.activo) return null;
+      return u;
+    });
+  }
+
+  /* ============================================================
+     Vídeos
+     ============================================================ */
+  var TROZO = 16 * 1024 * 1024;
+  var estado = { videos: [], filtro: "", usuario: null, playerId: null, motivoId: null };
+
+  function metadatosVideo(file) {
+    return new Promise(function (ok) {
+      var url = URL.createObjectURL(file);
+      var v = document.createElement("video");
+      var terminado = false;
+      var temporizador = setTimeout(function () { if (!terminado) { terminado = true; limpiar(); ok({ duracion: 0, miniatura: "" }); } }, 12000);
+      function limpiar() {
+        clearTimeout(temporizador);
+        URL.revokeObjectURL(url);
+        if (v.parentNode) v.parentNode.removeChild(v);
+      }
+      v.preload = "metadata";
+      v.muted = true;
+      v.playsInline = true;
+      v.style.cssText = "position:fixed;left:-9999px;width:200px";
+      document.body.appendChild(v);
+      v.addEventListener("loadedmetadata", function () {
+        var meta = { duracion: v.duration || 0, miniatura: "" };
+        try {
+          v.currentTime = Math.min(Math.max(0.5, (v.duration || 0) * 0.1), 30);
+        } catch (e) { terminado = true; limpiar(); ok(meta); return; }
+        v.addEventListener("seeked", function () {
+          if (terminado) return;
+          try {
+            var lienzo = document.createElement("canvas");
+            var ancho = 480;
+            var alto = Math.round(ancho * (v.videoHeight || 9) / (v.videoWidth || 16)) || 270;
+            lienzo.width = ancho; lienzo.height = alto;
+            lienzo.getContext("2d").drawImage(v, 0, 0, ancho, alto);
+            meta.miniatura = lienzo.toDataURL("image/jpeg", 0.72);
+          } catch (e) {}
+          terminado = true;
+          limpiar();
+          ok(meta);
+        }, { once: true });
+      });
+      v.addEventListener("error", function () {
+        if (terminado) return;
+        terminado = true; limpiar(); ok({ duracion: 0, miniatura: "" });
+      });
+      v.src = url;
+    });
+  }
+
+  function estimarEspacio(file) {
+    if (!navigator.storage || !navigator.storage.estimate) return Promise.resolve(true);
+    return navigator.storage.estimate().then(function (e) {
+      var libre = (e.quota || 0) - (e.usage || 0);
+      return !e.quota || file.size < libre * 0.98;
+    }).catch(function () { return true; });
+  }
+
+  function subirVideo(file, meta, alProgreso) {
+    var id = nuevoId();
+    var total = Math.max(1, Math.ceil(file.size / TROZO));
+    var inicio = Date.now();
+    var guardados = 0;
+
+    function paso(i) {
+      if (i >= total) return Promise.resolve();
+      var desde = i * TROZO;
+      var parte = file.slice(desde, Math.min(file.size, desde + TROZO));
+      return guardar("bloques", { videoId: id, i: i, datos: parte }).then(function () {
+        guardados++;
+        alProgreso(guardados / total);
+        if (guardados % 8 === 0) {
+          alProgreso(guardados / total, {
+            velocidad: guardados * TROZO / ((Date.now() - inicio) / 1000 || 1)
+          });
+        }
+        return paso(i + 1);
+      });
+    }
+
+    return paso(0).then(function () {
+      var video = {
+        id: id,
+        titulo: meta.titulo,
+        descripcion: meta.descripcion || "",
+        autorId: sesion.id,
+        autorUsuario: sesion.usuario,
+        creado: Date.now(),
+        duracion: meta.duracion || 0,
+        miniatura: meta.miniatura || "",
+        tamano: file.size,
+        tipo: file.type || "video/mp4",
+        bloques: total,
+        estado: "ok",
+        motivoBloqueo: ""
+      };
+      return guardar("videos", video).then(function () {
+        return registrar("subida", sesion.usuario, meta.titulo + " (" + bytes(file.size) + ")", "ok");
+      }).then(function () { return video; });
+    }).catch(function (error) {
+      return limpiarBloques(id).then(function () { throw error; });
+    });
+  }
+
+  function limpiarBloques(videoId) {
+    return pedir("bloques", "readwrite", function (s) {
+      var indice = s.index("porVideo");
+      var peticion = indice.openCursor(IDBKeyRange.only(videoId));
+      peticion.onsuccess = function (e) {
+        var cursor = e.target.result;
+        if (cursor) { cursor.delete(); cursor.continue(); }
+      };
+      return null;
+    }).catch(function () {});
+  }
+
+  function eliminarVideo(video, motivo) {
+    return limpiarBloques(video.id).then(function () {
+      return borrar("videos", video.id);
+    }).then(function () {
+      return registrar("borrado", sesion ? sesion.usuario : "—", (video.titulo || "") + (motivo ? " · " + motivo : ""), "ok");
+    });
+  }
+
+  function bloquear(video, motivo) {
+    video.estado = "bloqueado";
+    video.motivoBloqueo = motivo || "contenido no permitido";
+    return guardar("videos", video).then(function () {
+      return registrar("bloqueo", sesion.usuario, video.titulo + " · " + video.motivoBloqueo, "ok");
+    });
+  }
+
+  function desbloquear(video) {
+    video.estado = "ok";
+    video.motivoBloqueo = "";
+    return guardar("videos", video).then(function () {
+      return registrar("desbloqueo", sesion.usuario, video.titulo, "ok");
+    });
+  }
+
+  function blobDeVideo(video) {
+    return pedir("bloques", "readonly", function (s) {
+      var indice = s.index("porVideo");
+      return indice.getAll(IDBKeyRange.only(video.id));
+    }).then(function (partes) {
+      if (!partes || !partes.length) throw new Error("No se encontraron los datos del vídeo.");
+      partes.sort(function (a, b) { return a.i - b.i; });
+      return new Blob(partes.map(function (p) { return p.datos; }), { type: video.tipo });
+    });
+  }
+
+  /* ============================================================
+     Interfaz
+     ============================================================ */
+  function pintarCabecera() {
+    $("chipNombre").textContent = sesion ? sesion.usuario : "—";
+    var insignia = $("chipRol");
+    if (sesion && sesion.rol === "admin") insignia.classList.remove("oculto");
+    else insignia.classList.add("oculto");
+  }
+
+  function esAdmin() { return !!(sesion && sesion.rol === "admin"); }
+
+  function videosVisibles() {
+    var buscado = estado.filtro.trim().toLowerCase();
+    return estado.videos.filter(function (v) {
+      if (!sesion) return false;
+      var propio = v.autorId === sesion.id;
+      if (v.estado === "bloqueado" && !propio && !esAdmin()) return false;
+      if (!buscado) return true;
+      return (v.titulo || "").toLowerCase().indexOf(buscado) >= 0 ||
+        (v.descripcion || "").toLowerCase().indexOf(buscado) >= 0 ||
+        (v.autorUsuario || "").toLowerCase().indexOf(buscado) >= 0;
+    });
+  }
+
+  function pintarBiblioteca() {
+    var lista = videosVisibles();
+    var rejilla = $("rejilla");
+    $("contadorVideos").textContent = lista.length + (lista.length === 1 ? " vídeo" : " vídeos");
+    if (!lista.length) {
+      rejilla.innerHTML = "";
+      $("vacioBiblioteca").classList.remove("oculto");
+      if (estado.videos.length) {
+        $("vacioTitulo").textContent = "Sin resultados";
+        $("vacioTexto").textContent = "No hay vídeos que coincidan con \u201c" + estado.filtro + "\u201d.";
+        $("btnSubirVacio").classList.add("oculto");
+      } else {
+        $("vacioTitulo").textContent = "Tu vidoteca está vacía";
+        $("vacioTexto").textContent = "Sube el primer vídeo. No hay límite de duración ni de cantidad.";
+        $("btnSubirVacio").classList.remove("oculto");
+      }
+      return;
+    }
+    $("vacioBiblioteca").classList.add("oculto");
+    rejilla.innerHTML = lista.map(function (v) {
+      var color = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)", "var(--c5)"][(v.titulo || "").length % 5];
+      var bloqueado = v.estado === "bloqueado";
+      return '<article class="tarjeta" data-id="' + v.id + '">' +
+        '<div class="mini">' +
+        (v.miniatura ? '<img src="' + v.miniatura + '" alt="" loading="lazy">' : "") +
+        '<div class="play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>' +
+        '<span class="dur">' + duracion(v.duracion) + "</span>" +
+        (bloqueado ? '<span class="etiqueta-estado estado-bloqueado" style="position:absolute;left:8px;top:8px">Bloqueado</span>' : "") +
+        "</div>" +
+        '<div class="cuerpo">' +
+        "<h3>" + escapar(v.titulo) + "</h3>" +
+        (v.descripcion ? "<p>" + escapar(v.descripcion) + "</p>" : "") +
+        '<div class="pie"><span class="punto-autor" style="background:' + color + '"></span>' +
+        escapar(v.autorUsuario || "—") + " · " + fecha(v.creado) + " · " + bytes(v.tamano) + "</div>" +
+        "</div></article>";
+    }).join("");
+  }
+
+  function cargarVideos() {
+    return todos("videos").then(function (lista) {
+      lista.sort(function (a, b) { return b.creado - a.creado; });
+      estado.videos = lista;
+      pintarBiblioteca();
+    });
+  }
+
+  function abrirPlayer(id) {
+    var video = estado.videos.find(function (v) { return v.id === id; });
+    if (!video) return;
+    estado.playerId = id;
+    $("veloPlayer").classList.remove("oculto");
+    $("playerTitulo").textContent = video.titulo;
+    $("playerMeta").textContent = "";
+    var reproductor = $("playerVideo");
+    reproductor.pause();
+    reproductor.removeAttribute("src");
+    reproductor.load();
+    var propio = video.autorId === sesion.id;
+    var boton = $("btnBorrarPropio");
+    if (propio || esAdmin()) boton.style.display = "";
+    else boton.style.display = "none";
+
+    $("playerMeta").textContent = "Cargando vídeo…";
+    blobDeVideo(video).then(function (blob) {
+      reproductor.src = URL.createObjectURL(blob);
+      $("playerMeta").textContent = [
+        video.autorUsuario, duracion(video.duracion), bytes(video.tamano), fecha(video.creado),
+        video.estado === "bloqueado" ? "Bloqueado: " + video.motivoBloqueo : ""
+      ].filter(Boolean).join(" · ");
+    }).catch(function (e) {
+      $("playerMeta").textContent = "No se pudo cargar el vídeo.";
+      toast("No se pudo cargar el vídeo", "mal");
+    });
+  }
+
+  function cerrarPlayer() {
+    var reproductor = $("playerVideo");
+    reproductor.pause();
+    if (reproductor.src) URL.revokeObjectURL(reproductor.src);
+    reproductor.removeAttribute("src");
+    reproductor.load();
+    $("veloPlayer").classList.add("oculto");
+    estado.playerId = null;
+  }
+
+  /* ---------- panel de administración ---------- */
+  var ETIQUETAS_ACCION = {
+    acceso: "Acceso", alta: "Alta de cuenta", salida: "Salida", subida: "Subida",
+    borrado: "Borrado", bloqueo: "Bloqueo", desbloqueo: "Permitido",
+    "cambio-clave": "Contraseña", usuario: "Cuenta"
+  };
+  var GRUPOS = { moderacion: ["bloqueo", "desbloqueo", "borrado"], subida: ["subida"], acceso: ["acceso", "alta", "salida"] };
+
+  function pintarAccesos() {
+    return todos("auditoria").then(function (lista) {
+      lista.sort(function (a, b) { return b.hora - a.hora; });
+      var filtro = $("filtroAccesos") ? $("filtroAccesos").value : "acceso";
+      if (GRUPOS[filtro]) {
+        lista = lista.filter(function (a) { return GRUPOS[filtro].indexOf(a.tipo) >= 0; });
+      }
+      var recorte = lista.slice(0, 300);
+      var cuerpo = $("cuerpoAccesos");
+      if (!recorte.length) {
+        cuerpo.innerHTML = '<tr><td colspan="7" class="vacio-tabla">No hay registros con este filtro.</td></tr>';
+        return;
+      }
+      cuerpo.innerHTML = recorte.map(function (a) {
+        var lugar = [a.ciudad, a.pais].filter(Boolean).join(", ") || "—";
+        var color = a.resultado === "ok" ? "var(--ok)" : "var(--danger)";
+        var etiqueta = ETIQUETAS_ACCION[a.tipo] || a.tipo || "—";
+        return "<tr><td>" + escapar(fechaLarga(a.hora)) + "</td><td>" + escapar(a.usuario) + "</td>" +
+          "<td><b>" + escapar(etiqueta) + "</b>" + (a.detalle ? '<div style="color:var(--soft);font-size:.74rem">' + escapar(a.detalle) + "</div>" : "") + "</td>" +
+          '<td><span style="color:' + color + ';font-weight:650">' + escapar(a.resultado) + "</span></td>" +
+          '<td class="ip">' + escapar(a.ip || "—") + "</td><td>" + escapar(lugar) + "</td>" +
+          "<td>" + escapar(a.dispositivo || dispositivo(a.agente)) + "</td></tr>";
+      }).join("");
+    });
+  }
+
+  function pintarVideosAdmin() {
+    var caja = $("listaVideosAdmin");
+    if (!estado.videos.length) {
+      caja.innerHTML = '<div class="vacio-tabla" style="border:1px solid var(--line);border-radius:14px">No hay vídeos todavía.</div>';
+      return;
+    }
+    var videos = estado.videos.slice().sort(function (a, b) { return b.creado - a.creado; });
+    caja.innerHTML = '<div class="tabla-envoltura" style="padding:0">' + videos.map(function (v) {
+      var bloqueado = v.estado === "bloqueado";
+      return '<div class="ficha">' +
+        (v.miniatura ? '<img src="' + v.miniatura + '" alt="">' : '<img alt="">') +
+        '<div class="datos"><b>' + escapar(v.titulo) + "</b>" +
+        "<span>" + escapar(v.autorUsuario || "—") + " · " + fechaLarga(v.creado) + " · " + bytes(v.tamano) +
+        (bloqueado ? ' · <span style="color:var(--danger)">bloqueado: ' + escapar(v.motivoBloqueo) + "</span>" : "") +
+        "</span></div>" +
+        '<div class="acciones-ficha">' +
+        '<button class="btn btn-mini" data-accion="ver" data-id="' + v.id + '">Ver</button>' +
+        (bloqueado
+          ? '<button class="btn btn-mini" data-accion="desbloquear" data-id="' + v.id + '">Permitir</button>'
+          : '<button class="btn btn-mini btn-peligro" data-accion="bloquear" data-id="' + v.id + '">Bloquear</button>') +
+        '<button class="btn btn-mini btn-peligro" data-accion="eliminar" data-id="' + v.id + '">Eliminar</button>' +
+        "</div></div>";
+    }).join("") + "</div>";
+  }
+
+  function pintarUsuarios() {
+    return todos("usuarios").then(function (lista) {
+      lista.sort(function (a, b) { return a.creado - b.creado; });
+      $("cuerpoUsuarios").innerHTML = lista.map(function (u) {
+        var esYo = sesion && u.id === sesion.id;
+        return "<tr><td><b>" + escapar(u.usuario) + "</b>" + (esYo ? ' <span style="color:var(--soft)">(tú)</span>' : "") + "</td>" +
+          "<td>" + (u.rol === "admin" ? "Administrador" : "Usuario") + "</td>" +
+          '<td><span style="color:' + (u.activo ? "var(--ok)" : "var(--danger)") + ";font-weight:650\">" + (u.activo ? "Activa" : "Suspendida") + "</span></td>" +
+          "<td>" + fechaLarga(u.creado) + "</td>" +
+          "<td>" + (u.ultimoAcceso ? fechaLarga(u.ultimoAcceso) : "—") + "</td>" +
+          '<td style="text-align:right">' +
+          (esYo ? "" : '<button class="btn btn-mini" data-usuario="' + u.id + '" data-accion="' + (u.activo ? "suspender" : "activar") + '">' + (u.activo ? "Suspender" : "Activar") + "</button>") +
+          "</td></tr>";
+      }).join("");
+    });
+  }
+
+  /* ---------- vistas ---------- */
+  function irA(vista) {
+    var botones = document.querySelectorAll(".barra button");
+    Array.prototype.forEach.call(botones, function (b) {
+      b.setAttribute("aria-selected", String(b.getAttribute("data-vista") === vista));
+    });
+    if (vista === "admin") {
+      if (!esAdmin()) { toast("Solo para administradores", "mal"); return; }
+      $("vistaBiblioteca").classList.add("oculto");
+      $("vistaAdmin").classList.remove("oculto");
+      pintarAccesos();
+      pintarVideosAdmin();
+      pintarUsuarios();
+    } else if (vista === "subir") {
+      abrirSubir();
+      var botones2 = document.querySelectorAll(".barra button");
+      Array.prototype.forEach.call(botones2, function (b) {
+        b.setAttribute("aria-selected", String(b.getAttribute("data-vista") === "biblioteca"));
+      });
+    } else if (vista === "cuenta") {
+      abrirCuenta();
+    } else {
+      $("vistaAdmin").classList.add("oculto");
+      $("vistaBiblioteca").classList.remove("oculto");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- login ---------- */
+  function mostrarLogin(modo) {
+    $("veloLogin").classList.remove("oculto");
+    $("cajaEntrar").classList.toggle("oculto", modo !== "entrar");
+    $("cajaRegistro").classList.toggle("oculto", modo !== "registro");
+    $("cajaPrimerUso").classList.toggle("oculto", modo !== "primer");
+    avisoEn("avisoLogin", ""); avisoEn("avisoRegistro", ""); avisoEn("avisoPrimerUso", "");
+    if (modo === "entrar") setTimeout(function () { $("loginUsuario").focus(); }, 120);
+    if (modo === "primer") setTimeout(function () { $("adminUsuario").focus(); }, 120);
+  }
+
+  function entrarCon(usuario) {
+    escribirSesion(usuario);
+    pintarCabecera();
+    $("veloLogin").classList.add("oculto");
+    cargarVideos();
+    if (usuario.rol === "admin") document.querySelector('[data-vista="admin"]').style.display = "";
+    else document.querySelector('[data-vista="admin"]').style.display = "none";
+  }
+
+  function intentarEntrar() {
+    var usuario = $("loginUsuario").value.trim();
+    var clave = $("loginClave").value;
+    if (!usuario || !clave) { avisoEn("avisoLogin", "Escribe usuario y contraseña.", "error"); return; }
+    var boton = $("btnEntrar");
+    boton.disabled = true;
+    boton.innerHTML = '<span class="cargando"></span>Entrando…';
+    avisoEn("avisoLogin", "");
+    autenticar(usuario, clave).then(function (u) {
+      $("loginClave").value = "";
+      entrarCon(u);
+      toast("Hola, " + u.usuario, "bien");
+    }).catch(function (e) {
+      avisoEn("avisoLogin", e.message, "error");
+    }).then(function () {
+      boton.disabled = false;
+      boton.textContent = "Entrar";
+    });
+  }
+
+  function registrarCuenta() {
+    var usuario = $("regUsuario").value.trim();
+    var clave = $("regClave").value;
+    if (clave.length < 8) { avisoEn("avisoRegistro", "La contraseña debe tener al menos 8 caracteres.", "error"); return; }
+    var boton = $("btnRegistrar");
+    boton.disabled = true;
+    boton.innerHTML = '<span class="cargando"></span>Creando…';
+    crearUsuario(usuario, clave, "usuario").then(function (u) {
+      return registrar("alta", u.usuario, "cuenta creada", "ok").then(function () { return u; });
+    }).then(function (u) {
+      $("regClave").value = "";
+      entrarCon(u);
+      toast("Cuenta creada", "bien");
+    }).catch(function (e) {
+      avisoEn("avisoRegistro", e.message, "error");
+    }).then(function () {
+      boton.disabled = false;
+      boton.textContent = "Crear cuenta";
+    });
+  }
+
+  function crearAdmin() {
+    var usuario = $("adminUsuario").value.trim() || "admin";
+    var c1 = $("adminClave").value, c2 = $("adminClave2").value;
+    if (c1.length < 10) { avisoEn("avisoPrimerUso", "Usa al menos 10 caracteres.", "error"); return; }
+    if (c1 !== c2) { avisoEn("avisoPrimerUso", "Las contraseñas no coinciden.", "error"); return; }
+    var boton = $("btnCrearAdmin");
+    boton.disabled = true;
+    boton.innerHTML = '<span class="cargando"></span>Creando…';
+    crearUsuario(usuario, c1, "admin").then(function (u) {
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () {});
+      return datosIP().then(function () {
+        return registrar("alta", u.usuario, "administrador inicial", "ok");
+      }).then(function () { return u; });
+    }).then(function (u) {
+      $("adminClave").value = ""; $("adminClave2").value = "";
+      entrarCon(u);
+      toast("Administrador creado", "bien");
+    }).catch(function (e) {
+      avisoEn("avisoPrimerUso", e.message, "error");
+    }).then(function () {
+      boton.disabled = false;
+      boton.textContent = "Crear administrador";
+    });
+  }
+
+  /* ---------- subir ---------- */
+  var ficheroElegido = null, subiendo = false;
+
+  function abrirSubir() {
+    if (!sesion) return;
+    ficheroElegido = null;
+    $("ficheroVideo").value = "";
+    $("tituloVideo").value = "";
+    $("descVideo").value = "";
+    $("textoSoltar").textContent = "Arrastra un vídeo o toca para elegirlo";
+    $("zonaProgreso").classList.add("oculto");
+    $("barraProgreso").style.width = "0%";
+    $("btnSubirVideo").disabled = true;
+    avisoEn("avisoSubir", "");
+    $("veloSubir").classList.remove("oculto");
+  }
+
+  function elegirFichero(file) {
+    if (!file) return;
+    ficheroElegido = file;
+    $("textoSoltar").textContent = file.name + " · " + bytes(file.size);
+    if (!$("tituloVideo").value.trim()) {
+      $("tituloVideo").value = file.name.replace(/\.[a-z0-9]+$/i, "").slice(0, 120);
+    }
+    $("btnSubirVideo").disabled = false;
+    avisoEn("avisoSubir", "");
+    estimarEspacio(file).then(function (cabe) {
+      if (!cabe) {
+        avisoEn("avisoSubir", "Puede que no quede espacio suficiente en este dispositivo. El navegador podría rechazar la subida.", "error");
+      }
+    });
+  }
+
+  function subirAhora() {
+    if (!ficheroElegido || subiendo) return;
+    var titulo = $("tituloVideo").value.trim() || "Sin título";
+    var descripcion = $("descVideo").value.trim();
+    var boton = $("btnSubirVideo");
+    subiendo = true;
+    boton.disabled = true;
+    boton.innerHTML = '<span class="cargando"></span>Subiendo…';
+    $("zonaProgreso").classList.remove("oculto");
+    var t0 = Date.now();
+
+    metadatosVideo(ficheroElegido).then(function (meta) {
+      return subirVideo(ficheroElegido, {
+        titulo: titulo, descripcion: descripcion,
+        duracion: meta.duracion, miniatura: meta.miniatura
+      }, function (fraccion, extra) {
+        var pct = Math.round(fraccion * 100);
+        $("barraProgreso").style.width = pct + "%";
+        $("detalleProgreso").textContent = pct + "% · " + bytes(Math.round(ficheroElegido.size * fraccion)) + " de " + bytes(ficheroElegido.size);
+        if (extra && extra.velocidad) {
+          var resto = (ficheroElegido.size * (1 - fraccion)) / extra.velocidad;
+          $("ritmoProgreso").textContent = resto > 1 ? "quedan " + duracion(resto) : "";
+        }
+      });
+    }).then(function () {
+      var segundos = ((Date.now() - t0) / 1000).toFixed(1);
+      toast("Vídeo guardado (" + segundos + " s)", "bien");
+      $("veloSubir").classList.add("oculto");
+      cargarVideos();
+    }).catch(function (e) {
+      avisoEn("avisoSubir", "No se pudo guardar: " + (e && e.message ? e.message : "error desconocido"), "error");
+    }).then(function () {
+      subiendo = false;
+      boton.disabled = false;
+      boton.textContent = "Subir vídeo";
+    });
+  }
+
+  /* ---------- cuenta ---------- */
+  function abrirCuenta() {
+    $("veloCuenta").classList.remove("oculto");
+    $("cuentaResumen").textContent = sesion ? sesion.usuario + " · " + (sesion.rol === "admin" ? "administrador" : "usuario") : "—";
+    $("claveActual").value = ""; $("claveNueva").value = "";
+    avisoEn("avisoCuenta", "");
+  }
+
+  function cambiarClave() {
+    var actual = $("claveActual").value, nueva = $("claveNueva").value;
+    if (nueva.length < 8) { avisoEn("avisoCuenta", "La nueva contraseña debe tener al menos 8 caracteres.", "error"); return; }
+    usuarioDeSesion().then(function (u) {
+      if (!u) throw new Error("Sesión no válida.");
+      return hashClave(actual, u.salt).then(function (h) {
+        if (!hashesIguales(h, u.hash)) throw new Error("La contraseña actual no es correcta.");
+        var salt = nuevoSalt();
+        return hashClave(nueva, salt).then(function (nuevoHash) {
+          u.salt = salt; u.hash = nuevoHash;
+          return guardar("usuarios", u).then(function () {
+            return registrar("cambio-clave", u.usuario, "contraseña actualizada", "ok");
+          });
+        });
+      });
+    }).then(function () {
+      avisoEn("avisoCuenta", "Contraseña actualizada.", "bien");
+      $("claveActual").value = ""; $("claveNueva").value = "";
+      toast("Contraseña actualizada", "bien");
+    }).catch(function (e) { avisoEn("avisoCuenta", e.message, "error"); });
+  }
+
+  /* ============================================================
+     Eventos
+     ============================================================ */
+  function conectarEventos() {
+    $("btnEntrar").addEventListener("click", intentarEntrar);
+    $("loginClave").addEventListener("keydown", function (e) { if (e.key === "Enter") intentarEntrar(); });
+    $("btnRegistrar").addEventListener("click", registrarCuenta);
+    $("regClave").addEventListener("keydown", function (e) { if (e.key === "Enter") registrarCuenta(); });
+    $("btnCrearAdmin").addEventListener("click", crearAdmin);
+    $("enlaceRegistro").addEventListener("click", function (e) { e.preventDefault(); mostrarLogin("registro"); });
+    $("enlaceEntrar").addEventListener("click", function (e) { e.preventDefault(); mostrarLogin("entrar"); });
+
+    $("btnSalir").addEventListener("click", function () {
+      if (!sesion) { mostrarLogin("entrar"); return; }
+      registrar("salida", sesion.usuario, "cierre de sesión", "ok").then(function () {
+        cerrarSesionLocal();
+        location.reload();
+      });
+    });
+
+    $("buscador").addEventListener("input", function () {
+      estado.filtro = this.value;
+      pintarBiblioteca();
+    });
+
+    $("rejilla").addEventListener("click", function (e) {
+      var tarjeta = e.target.closest(".tarjeta");
+      if (tarjeta) abrirPlayer(tarjeta.getAttribute("data-id"));
+    });
+
+    $("btnCerrarPlayer").addEventListener("click", cerrarPlayer);
+    $("btnBorrarPropio").addEventListener("click", function () {
+      var video = estado.videos.find(function (v) { return v.id === estado.playerId; });
+      if (!video) return;
+      if (!confirm("¿Eliminar \u201c" + video.titulo + "\u201d? No se puede deshacer.")) return;
+      eliminarVideo(video).then(function () {
+        cerrarPlayer();
+        cargarVideos();
+        toast("Vídeo eliminado", "bien");
+      }).catch(function () { toast("No se pudo eliminar", "mal"); });
+    });
+
+    $("btnSubirVacio").addEventListener("click", abrirSubir);
+    $("btnCancelarSubida").addEventListener("click", function () {
+      if (subiendo) { toast("Espera a que termine la subida", "mal"); return; }
+      $("veloSubir").classList.add("oculto");
+    });
+    $("zonaSoltar").addEventListener("click", function () { $("ficheroVideo").click(); });
+    $("ficheroVideo").addEventListener("change", function () { elegirFichero(this.files[0]); });
+    ["dragover", "dragenter"].forEach(function (evt) {
+      $("zonaSoltar").addEventListener(evt, function (e) { e.preventDefault(); this.classList.add("drag"); });
+    });
+    ["dragleave", "drop"].forEach(function (evt) {
+      $("zonaSoltar").addEventListener(evt, function (e) { e.preventDefault(); this.classList.remove("drag"); });
+    });
+    $("zonaSoltar").addEventListener("drop", function (e) {
+      var f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) elegirFichero(f);
+    });
+    $("btnSubirVideo").addEventListener("click", subirAhora);
+
+    $("btnCerrarCuenta").addEventListener("click", function () { $("veloCuenta").classList.add("oculto"); });
+    $("btnCambiarClave").addEventListener("click", cambiarClave);
+
+    Array.prototype.forEach.call(document.querySelectorAll(".barra button"), function (b) {
+      b.addEventListener("click", function () { irA(b.getAttribute("data-vista")); });
+    });
+
+    $("filtroAccesos").addEventListener("change", pintarAccesos);
+
+    Array.prototype.forEach.call(document.querySelectorAll(".pestanas button"), function (b) {
+      b.addEventListener("click", function () {
+        Array.prototype.forEach.call(document.querySelectorAll(".pestanas button"), function (x) {
+          x.setAttribute("aria-selected", String(x === b));
+        });
+        var p = b.getAttribute("data-pestana");
+        $("panelAccesos").classList.toggle("oculto", p !== "accesos");
+        $("panelVideos").classList.toggle("oculto", p !== "videos");
+        $("panelUsuarios").classList.toggle("oculto", p !== "usuarios");
+      });
+    });
+
+    // acciones del panel de vídeos
+    $("listaVideosAdmin").addEventListener("click", function (e) {
+      var boton = e.target.closest("button[data-accion]");
+      if (!boton) return;
+      var id = boton.getAttribute("data-id");
+      var video = estado.videos.find(function (v) { return v.id === id; });
+      if (!video) return;
+      var accion = boton.getAttribute("data-accion");
+      if (accion === "ver") { abrirPlayer(id); return; }
+      if (accion === "desbloquear") {
+        desbloquear(video).then(function () { return cargarVideos(); }).then(pintarVideosAdmin);
+        return;
+      }
+      if (accion === "bloquear") {
+        estado.motivoId = id;
+        $("textoMotivo").value = "";
+        avisoEn("avisoMotivo", "");
+        $("veloMotivo").classList.remove("oculto");
+        return;
+      }
+      if (accion === "eliminar") {
+        if (!confirm("¿Eliminar definitivamente \u201c" + video.titulo + "\u201d de " + video.autorUsuario + "?")) return;
+        eliminarVideo(video, "desde administración").then(function () {
+          return cargarVideos();
+        }).then(function () {
+          pintarVideosAdmin(); pintarAccesos(); pintarBiblioteca();
+          toast("Vídeo eliminado", "bien");
+        });
+      }
+    });
+
+    $("btnCancelarMotivo").addEventListener("click", function () { $("veloMotivo").classList.add("oculto"); });
+    $("btnConfirmarMotivo").addEventListener("click", function () {
+      var video = estado.videos.find(function (v) { return v.id === estado.motivoId; });
+      var motivo = $("textoMotivo").value.trim();
+      if (!motivo) { avisoEn("avisoMotivo", "Escribe el motivo.", "error"); return; }
+      if (!video) return;
+      bloquear(video, motivo).then(function () {
+        $("veloMotivo").classList.add("oculto");
+        return cargarVideos();
+      }).then(function () {
+        pintarVideosAdmin(); pintarBiblioteca(); pintarAccesos();
+        toast("Vídeo bloqueado", "bien");
+      });
+    });
+
+    // usuarios
+    $("cuerpoUsuarios").addEventListener("click", function (e) {
+      var boton = e.target.closest("button[data-usuario]");
+      if (!boton) return;
+      var id = boton.getAttribute("data-usuario");
+      var accion = boton.getAttribute("data-accion");
+      obtener("usuarios", id).then(function (u) {
+        if (!u) return;
+        u.activo = accion === "activar";
+        return guardar("usuarios", u).then(function () {
+          return registrar("usuario", sesion.usuario, (u.usuario + (u.activo ? " activado" : " suspendido")), "ok");
+        }).then(pintarUsuarios);
+      });
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") {
+        if (!$("veloPlayer").classList.contains("oculto")) cerrarPlayer();
+        else if (!$("veloSubir").classList.contains("oculto")) { if (!subiendo) $("veloSubir").classList.add("oculto"); }
+        else if (!$("veloCuenta").classList.contains("oculto")) $("veloCuenta").classList.add("oculto");
+        else if (!$("veloMotivo").classList.contains("oculto")) $("veloMotivo").classList.add("oculto");
+      }
+    });
+  }
+
+  /* ============================================================
+     Arranque
+     ============================================================ */
+  function arrancar() {
+    conectarEventos();
+    abrirDB().then(function () {
+      return contar("usuarios");
+    }).then(function (n) {
+      if (!n) { mostrarLogin("primer"); return; }
+      sesion = leerSesion();
+      if (!sesion) { mostrarLogin("entrar"); return; }
+      return usuarioDeSesion().then(function (u) {
+        if (!u) { cerrarSesionLocal(); mostrarLogin("entrar"); return; }
+        pintarCabecera();
+        $("veloLogin").classList.add("oculto");
+        if (u.rol !== "admin") document.querySelector('[data-vista="admin"]').style.display = "none";
+        return cargarVideos();
+      });
+    }).catch(function (e) {
+      document.body.innerHTML = '<div style="padding:40px;font-family:system-ui"><h2>No se pudo abrir el almacenamiento</h2><p>' +
+        escapar(e && e.message ? e.message : "Error desconocido") + "</p><p>Abre la página en un navegador actualizado y sin modo privado.</p></div>";
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arrancar);
+  else arrancar();
+})();
+
+</script>
+</body>
+</html>
